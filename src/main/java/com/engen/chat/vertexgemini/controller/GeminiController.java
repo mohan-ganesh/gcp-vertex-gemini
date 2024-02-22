@@ -29,6 +29,8 @@ import java.util.Base64;
 import java.util.List;
 
 import java.util.Map;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 public class GeminiController {
@@ -40,7 +42,11 @@ public class GeminiController {
      * @return String
      */
     @RequestMapping(path = "/gemini", method = RequestMethod.GET)
-    public ResponseEntity geminiChat() {
+    public ResponseEntity geminiChat(jakarta.servlet.http.HttpServletRequest request) {
+        String geminiResponse = null;
+        String query = request.getParameter("query");
+        logger.debug(query);
+
         try (VertexAI vertexAi = new VertexAI("mohanganesh", "us-central1");) {
             GenerationConfig generationConfig = GenerationConfig.newBuilder()
                     .setMaxOutputTokens(2048)
@@ -67,20 +73,18 @@ public class GeminiController {
                             .setThreshold(SafetySetting.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE)
                             .build());
 
-            // For multi-turn responses, start a chat session.
+            
             ChatSession chatSession = model.startChat();
-
             GenerateContentResponse response;
-            response = chatSession.sendMessage("tell me about adding button inside text area", safetySettings);
-            System.out.println(ResponseHandler.getText(response));
+            response = chatSession.sendMessage(query, safetySettings);
+            geminiResponse = ResponseHandler.getText(response);
 
-            response = chatSession.sendMessage("give me the steps to springboot app with java 17", safetySettings);
-            System.out.println(ResponseHandler.getText(response));
+            
         } catch (IOException e) {
             logger.error("Something went wrong", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-        return ResponseEntity.ok("alive");
+        return ResponseEntity.ok(geminiResponse);
 
     }
 
