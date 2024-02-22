@@ -1,0 +1,33 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - "-t"
+      - "$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME"
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - "$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME"
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    args:
+      - run
+      - deploy
+      - $_SERVICE_NAME
+      - "--image"
+      - "$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME"
+      - "--region"
+      - $_DEPLOY_REGION
+      - "--platform"
+      - $_PLATFORM
+      - $_AUTH_OPTION
+    entrypoint: gcloud
+timeout: 1200s
+images:
+  - "$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME"
+substitutions:
+  _GCR_HOSTNAME: "gcr.io"
+  _SERVICE_NAME: "gemini"
+  _PLATFORM: "managed"
+  _DEPLOY_REGION: "us-central1"
+  _AUTH_OPTION: "--allow-unauthenticated"
