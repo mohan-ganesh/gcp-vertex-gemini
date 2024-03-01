@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.http.HttpStatus;
+
+import com.engen.chat.vertexgemini.domain.ChatResponse;
 import com.google.cloud.vertexai.VertexAI;
 import com.google.cloud.vertexai.api.GenerateContentResponse;
 import com.google.cloud.vertexai.api.GenerationConfig;
@@ -27,12 +29,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
-
 import java.util.Map;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 @RestController
+@CrossOrigin(origins = "*")
 public class GeminiController {
 
     public static Log logger = LogFactory.getLog(GeminiController.class);
@@ -41,12 +44,13 @@ public class GeminiController {
      *
      * @return String
      */
-    @RequestMapping(path = "/gemini", method = RequestMethod.GET)
+    @RequestMapping(path = "/gemini", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity geminiChat(jakarta.servlet.http.HttpServletRequest request) {
         String geminiResponse = null;
         String query = request.getParameter("query");
         logger.debug(query);
-
+        ChatResponse chatResponse = new ChatResponse();
+        
         try (VertexAI vertexAi = new VertexAI("mohanganesh", "us-central1");) {
             GenerationConfig generationConfig = GenerationConfig.newBuilder()
                     .setMaxOutputTokens(2048)
@@ -78,6 +82,7 @@ public class GeminiController {
             GenerateContentResponse response;
             response = chatSession.sendMessage(query, safetySettings);
             geminiResponse = ResponseHandler.getText(response);
+            
 
             
         } catch (IOException e) {
